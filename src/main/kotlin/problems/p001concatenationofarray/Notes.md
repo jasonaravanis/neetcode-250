@@ -9,6 +9,7 @@ title: Concatenation of Array
 - **NeetCode:** #1
 - **LeetCode:** #1929
 - **Category:** Arrays & Hashing
+- **Solution:** https://www.youtube.com/watch?v=68isPRHgcFQ&list=PLot-Xpze53ldOyuteC44ap08G1YvCc0Gy
 
 ## Problem
 Given an integer array `nums` of length `n`, return an array `ans` of length `2n` where `ans[i] == nums[i]` and `ans[i + n] == nums[i]` for `0 <= i < n`. In other words, `ans` is `nums` followed by `nums`.

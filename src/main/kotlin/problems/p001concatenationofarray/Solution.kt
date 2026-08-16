@@ -1,4 +1,4 @@
-package problems.p001_concatenation_of_an_array
+package problems.p001concatenationofarray
 
 class Solution {
     fun getConcatenation(nums: IntArray): IntArray {
