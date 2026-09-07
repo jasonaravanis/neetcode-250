@@ -3,7 +3,7 @@ package problems.p001concatenationofarray
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
-class SolutionTest {
+class BrowserHistoryTest {
     private val solution = Solution()
 
     @Test
