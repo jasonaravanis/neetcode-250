@@ -1,6 +1,6 @@
 package problems.algorithmsAndDataStructuresForBeginners.replaceElementsWithGreatestElementOnRightSide
 
-class Solution {
+class BruteSolution {
     fun replaceElements(arr: IntArray): IntArray {
         /*
         loop over each element
