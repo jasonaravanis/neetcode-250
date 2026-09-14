@@ -1,4 +1,4 @@
-package problems.designBrowserHistory
+package problems.algorithmsAndDataStructuresForBeginners.designBrowserHistory
 
 class BrowserHistory(
     homepage: String,

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remove Element — Two-Pointer Visualizer</title>
+<style>
+  :root {
+    --bg:#0f1117; --card:#171a23; --card2:#1c1f2b; --border:#2a2f3d;
+    --text:#e6e8ee; --muted:#8b92a5;
+    --green:#4ade80; --greenBg:#0f2a1c; --greenBorder:#1f7a44;
+    --amber:#fbbf24; --amberBg:#2c2408; --amberBorder:#8a6d1a;
+    --grayBg:#22262f; --grayBorder:#383e4b;
+    --blue:#60a5fa; --purple:#c084fc;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:var(--bg); color:var(--text); padding:32px 24px; }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  label { font-size: 12px; color: var(--muted); display:block; margin-bottom: 4px; }
+  input { background: var(--card2); border:1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 9px; font-family: inherit; font-size: 13px; width: 100%; }
+  .row { display:flex; gap:10px; align-items:flex-end; flex-wrap: wrap; }
+  .field { flex: 1; min-width: 150px; }
+  button { background: var(--card2); border:1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 12px; font-family: inherit; font-size: 13px; cursor: pointer; }
+  button:hover { border-color: var(--blue); }
+  button:disabled { opacity:.4; cursor:default; }
+  .presets { margin-top: 10px; display:flex; gap:8px; flex-wrap: wrap; }
+  .presets button { font-size: 12px; padding: 4px 9px; }
+  .array { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 18px 0 6px; }
+  .cell { width: 62px; text-align:center; }
+  .pointers { height: 24px; display:flex; gap: 4px; justify-content:center; align-items:flex-start; }
+  .pbadge { font-size: 10px; font-weight:700; padding: 1px 5px; border-radius: 4px; }
+  .pbadge.w { background: rgba(192,132,252,.18); color: var(--purple); border:1px solid var(--purple); }
+  .pbadge.r { background: rgba(96,165,250,.18); color: var(--blue); border:1px solid var(--blue); }
+  .value { height: 42px; line-height: 42px; font-size: 17px; font-weight: 600; border-radius: 8px; border: 2px solid var(--border); transition: all .25s; }
+  .value.keep { background: var(--greenBg); border-color: var(--greenBorder); color: var(--green); }
+  .value.gap { background: var(--amberBg); border-color: var(--amberBorder); color: var(--amber); }
+  .value.unseen { background: var(--grayBg); border-color: var(--grayBorder); color: var(--muted); }
+  .value.read { box-shadow: 0 0 0 2px var(--blue); }
+  .value.copy-dest { animation: pulse .6s ease; box-shadow: 0 0 0 2px var(--green); }
+  @keyframes pulse { 0%{transform:scale(1.08);} 100%{transform:scale(1);} }
+  .index { font-size: 11px; color: var(--muted); margin-top: 5px; }
+  .legend { display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .legend .sw { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .controls { display:flex; align-items:center; justify-content:center; gap:10px; margin-top: 16px; }
+  .stepcount { color: var(--muted); font-size: 13px; min-width: 96px; text-align:center; }
+  .keys { text-align:center; font-size: 11px; color: var(--muted); margin-top: 10px; }
+  .desc { text-align:center; font-size: 14px; min-height: 48px; display:flex; align-items:center; justify-content:center; margin-top: 12px; line-height: 1.5; }
+  .desc b { color: var(--text); }
+  .desc .good { color: var(--green); font-weight: 600; }
+  .desc .bad { color: var(--amber); font-weight: 600; }
+  .invariant { font-size: 12.5px; color: var(--muted); line-height: 1.6; text-align:center; margin: 0; }
+  .invariant b { color: var(--text); }
+  pre { background: var(--card2); border:1px solid var(--border); border-radius:8px; padding: 12px 16px; font-size: 13px; line-height: 1.75; overflow-x: auto; margin: 0; }
+  pre .kw { color:#c792ea; } pre .fn { color:#82aaff; } pre .num { color:#f78c6c; } pre .cm { color:#5b6375; font-style: italic; }
+  pre .ln { transition: background .25s; display:block; border-radius: 4px; }
+  pre .ln.hot { background: rgba(96,165,250,.12); outline: 1px solid rgba(96,165,250,.35); }
+  .code-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Remove Element — Two-Pointer Visualizer</h1>
+  <div class="sub">Step through the in-place two-pointer solution. Watch <b style="color:var(--purple)">W</b> (write) and <b style="color:var(--blue)">R</b> (read) move through the array.</div>
+
+  <div class="card">
+    <div class="row">
+      <div class="field">
+        <label>nums (comma separated)</label>
+        <input id="numsInput" value="3,2,2,3" spellcheck="false">
+      </div>
+      <div class="field" style="max-width:120px;">
+        <label>val</label>
+        <input id="valInput" value="3" spellcheck="false">
+      </div>
+      <button class="primary" id="runBtn">Run</button>
+    </div>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <div class="card">
+    <div class="array" id="array"></div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--greenBg);border:1px solid var(--greenBorder);"></span>keeper pile (0..W-1)</span>
+      <span><span class="sw" style="background:var(--amberBg);border:1px solid var(--amberBorder);"></span>redundant gap (W..R)</span>
+      <span><span class="sw" style="background:var(--grayBg);border:1px solid var(--grayBorder);"></span>not seen yet (R+1..end)</span>
+    </div>
+    <div class="desc" id="desc"></div>
+    <div class="controls">
+      <button id="resetBtn">⏮ Reset</button>
+      <button id="prevBtn">◀ Prev</button>
+      <button id="playBtn">▶ Play</button>
+      <button id="nextBtn">Next ▶</button>
+      <span class="stepcount" id="stepcount"></span>
+    </div>
+    <div class="keys">← / → step &nbsp;·&nbsp; space play/pause</div>
+  </div>
+
+  <div class="card">
+    <p class="invariant">
+      Positions <b>0..W-1</b> = finalized keepers (green).<br>
+      Positions <b>W..R</b> = the <b>redundant gap</b> (amber): every spot here was already examined — either its value was
+      copied to the front when read saw it, or it equals val. Nothing unique lives there, so <b>W</b> is always safe to stomp on it.<br>
+      Positions <b>R+1..end</b> = never touched yet (gray).
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="code-title">The algorithm</div>
+    <pre><code>
+<span class="ln" id="ln0"><span class="kw">fun</span> <span class="fn">removeElement</span>(nums: IntArray, <span class="fn">val</span>: Int): Int {</span>
+<span class="ln" id="ln1">    <span class="kw">var</span> write = <span class="num">0</span></span>
+<span class="ln" id="ln2">    <span class="kw">for</span> (read <span class="kw">in</span> nums.indices) {</span>
+<span class="ln" id="ln3">        <span class="kw">if</span> (nums[read] != <span class="fn">val</span>) {   <span class="cm">// keeper?</span></span>
+<span class="ln" id="ln4">            nums[write] = nums[read] <span class="cm">// copy to front</span></span>
+<span class="ln" id="ln5">            write++                  <span class="cm">// advance the pile</span></span>
+<span class="ln" id="ln6">        }                          <span class="cm">// else → joins the redundant gap</span></span>
+<span class="ln" id="ln7">    }</span>
+<span class="ln" id="ln8">    <span class="kw">return</span> write                  <span class="cm">// k = number of keepers</span></span>
+<span class="ln" id="ln9">}</span>
+</code></pre>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const state = { frames: [], idx: 0, timer: null };
+
+  const PRESETS = [
+    { nums: [3,2,2,3], val: 3, label: "Example 1: [3,2,2,3], 3" },
+    { nums: [0,1,2,2,3,0,4,2], val: 2, label: "Example 2: [0,1,2,2,3,0,4,2], 2" },
+    { nums: [4,1,4,5], val: 4, label: "Keeper then stomp: [4,1,4,5], 4" },
+  ];
+
+  function buildFrames(nums, val) {
+    const frames = [];
+    if (nums.length === 0) {
+      frames.push({ arr: [], write: 0, read: -1, phase: 'done',
+        desc: `Empty array → return <b>k = write = 0</b>.` });
+      return frames;
+    }
+    const a = nums.slice();
+    let write = 0;
+    frames.push({ arr: a.slice(), write, read: 0, phase: 'start',
+      desc: `Start: <b>R</b> points at index 0, <b>W</b> marks the front of the keeper pile. Nothing examined yet.` });
+    for (let read = 0; read < a.length; read++) {
+      const v = a[read];
+      if (v !== val) {
+        frames.push({ arr: a.slice(), write, read, phase: 'inspect',
+          desc: `read=${read} → <span class="good">${v} ≠ ${val}</span>, it's a <span class="good">keeper</span>. Copy it to the pile at index ${write}.` });
+        a[write] = v; write++;
+        frames.push({ arr: a.slice(), write, read, copyDest: write - 1, phase: 'copy',
+          desc: `Copied ${v} → index ${write - 1} <span class="good">(green)</span>. <b>W moves to ${write}</b>. The original spot at index ${read} is now <span class="bad">redundant</span> — safe to overwrite later.` });
+      } else {
+        frames.push({ arr: a.slice(), write, read, phase: 'skip',
+          desc: `read=${read} → <span class="bad">${v} == ${val}</span>, skip it. It joins the <span class="bad">redundant gap</span>. <b>W stays at ${write}</b>.` });
+      }
+    }
+    frames.push({ arr: a.slice(), write, read: a.length - 1, phase: 'done',
+      desc: `<span class="good">Done!</span> Every non-${val} value was copied to the front. Return <b>k = write = ${write}</b>. First ${write} elements: <b>[${a.slice(0, write).join(', ')}]</b>` });
+    return frames;
+  }
+
+  function zoneOf(idx, f) {
+    if (idx < f.write) return 'keep';
+    if (idx > f.read) return 'unseen';
+    return 'gap';
+  }
+
+  function render() {
+    const f = state.frames[state.idx];
+    const count = state.frames.length;
+
+    $('stepcount').textContent = `${state.idx + 1} / ${count}`;
+    $('prevBtn').disabled = state.idx === 0;
+    $('nextBtn').disabled = state.idx === count - 1;
+    $('playBtn').textContent = state.timer ? '⏸ Pause' : '▶ Play';
+
+    const arrEl = $('array');
+    arrEl.innerHTML = '';
+    if (f.arr.length === 0) {
+      arrEl.innerHTML = '<div style="color:var(--muted);padding:10px">(empty array)</div>';
+    }
+    for (let i = 0; i < f.arr.length; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const ptrs = [];
+      if (i === f.write) ptrs.push('<span class="pbadge w">W</span>');
+      if (i === f.read && f.read >= 0) ptrs.push('<span class="pbadge r">R</span>');
+      const cls = zoneOf(i, f) + (i === f.read && f.read >= 0 ? ' read' : '');
+      cell.innerHTML = `
+        <div class="pointers">${ptrs.join('')}</div>
+        <div class="value ${cls}">${f.arr[i]}</div>
+        <div class="index">${i}</div>`;
+      arrEl.appendChild(cell);
+    }
+    if (f.copyDest !== undefined) {
+      const vals = arrEl.querySelectorAll('.value');
+      vals[f.copyDest] && vals[f.copyDest].classList.add('copy-dest');
+    }
+
+    $('desc').innerHTML = f.desc;
+
+    document.querySelectorAll('pre .ln').forEach(l => l.classList.remove('hot'));
+    const hot = { start: [1], inspect: [2, 3], copy: [4, 5], skip: [6], done: [8] }[f.phase] || [];
+    hot.forEach(i => { const el = $('ln' + i); el && el.classList.add('hot'); });
+  }
+
+  function go(i) {
+    state.idx = Math.max(0, Math.min(state.frames.length - 1, i));
+    render();
+  }
+
+  function run(nums, val) {
+    clearInterval(state.timer); state.timer = null;
+    state.frames = buildFrames(nums, val);
+    state.idx = 0;
+    render();
+  }
+
+  $('runBtn').onclick = () => {
+    const nums = $('numsInput').value.split(',').map(s => s.trim()).filter(s => s !== '').map(Number);
+    const val = Number($('valInput').value);
+    if (nums.some(isNaN) || isNaN(val)) { alert('Check your inputs — nums should be comma-separated integers and val an integer.'); return; }
+    run(nums, val);
+  };
+
+  $('prevBtn').onclick = () => go(state.idx - 1);
+  $('nextBtn').onclick = () => go(state.idx + 1);
+  $('resetBtn').onclick = () => { clearInterval(state.timer); state.timer = null; go(0); };
+  $('playBtn').onclick = () => {
+    if (state.timer) { clearInterval(state.timer); state.timer = null; render(); return; }
+    if (state.idx >= state.frames.length - 1) go(0);
+    state.timer = setInterval(() => {
+      if (state.idx >= state.frames.length - 1) {
+        clearInterval(state.timer); state.timer = null; render(); return;
+      }
+      go(state.idx + 1);
+    }, 1100);
+  };
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'ArrowLeft') { go(state.idx - 1); e.preventDefault(); }
+    else if (e.code === 'ArrowRight') { go(state.idx + 1); e.preventDefault(); }
+    else if (e.code === 'Space') { $('playBtn').onclick(); e.preventDefault(); }
+  });
+
+  const presetsEl = $('presets');
+  PRESETS.forEach(p => {
+    const b = document.createElement('button');
+    b.textContent = p.label;
+    b.onclick = () => { $('numsInput').value = p.nums.join(','); $('valInput').value = p.val; run(p.nums, p.val); };
+    presetsEl.appendChild(b);
+  });
+
+  run([3, 2, 2, 3], 3);
+</script>
+</body>
+</html>

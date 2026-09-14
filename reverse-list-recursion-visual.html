@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reverse Linked List — Recursion Visualizer</title>
+<style>
+  :root {
+    --bg:#0f1117; --card:#171a23; --card2:#1c1f2b; --border:#2a2f3d;
+    --text:#e6e8ee; --muted:#8b92a5;
+    --green:#4ade80; --greenBg:#0f2a1c; --greenBorder:#1f7a44;
+    --amber:#fbbf24; --amberBg:#2c2408; --amberBorder:#8a6d1a;
+    --grayBg:#22262f; --grayBorder:#383e4b;
+    --blue:#60a5fa; --purple:#c084fc; --orange:#fb923c;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:var(--bg); color:var(--text); padding:32px 24px; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .code-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .mainrow { display:flex; flex-direction:column; gap:16px; }
+
+  .stage { background: var(--card2); border:1px solid var(--border); border-radius: 8px; overflow:hidden; }
+  .stage svg { display:block; width:100%; max-width: 720px; height:auto; margin:0 auto; }
+
+  .legend { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .legend .sw { display:inline-block; width:13px; height:13px; border-radius:4px; margin-right:5px; vertical-align:-2px; }
+  .desc { text-align:left; font-size: 14.5px; line-height: 1.7; margin-top: 12px; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .desc b { color: var(--text); }
+  .desc .good { color: var(--green); font-weight: 600; }
+  .desc .bad { color: var(--orange); font-weight: 600; }
+  .desc .code { color: var(--amber); font-weight: 600; }
+
+  .controls { display:flex; align-items:center; justify-content:center; gap:10px; margin-top: 14px; flex-wrap:wrap; }
+  button { background: var(--card2); border:1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 12px; font-family: inherit; font-size: 13px; cursor: pointer; }
+  button:hover { border-color: var(--blue); }
+  button:disabled { opacity:.4; cursor:default; }
+  .stepcount { color: var(--muted); font-size: 13px; min-width: 96px; text-align:center; }
+  .keys { text-align:center; font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+  #stack { display:flex; flex-direction:row; flex-wrap:wrap; gap:8px; }
+  .chip { background: var(--card2); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:12.5px; line-height:1.45; }
+  .chip .fname { color: var(--blue); font-weight:700; }
+  .chip .chipsub { font-size:11px; color: var(--muted); margin-top:1px; }
+  .chip.active { border-color: var(--amber); }
+  .chip.active .fname { color: var(--amber); }
+  .chip .chipsub.nh { color: var(--green); }
+  .chip .chipsub.ret { color: var(--green); }
+  .stackcap { font-size:11px; color: var(--muted); text-align:left; margin-top:6px; }
+
+  pre { background: var(--card2); border:1px solid var(--border); border-radius:8px; padding: 12px 16px; font-size: 13px; line-height: 1.8; overflow-x: auto; margin: 0; }
+  pre .kw { color:#c792ea; } pre .fn { color:#82aaff; } pre .num { color:#f78c6c; } pre .cm { color:#5b6375; font-style: italic; }
+  pre .ln { transition: background .25s; display:block; border-radius: 4px; }
+  pre .ln.hot { background: rgba(96,165,250,.14); outline: 1px solid rgba(96,165,250,.35); }
+
+  .recap { font-size: 13px; line-height: 1.75; color: var(--muted); margin:0; }
+  .recap b { color: var(--text); }
+  .recap .mono { color: var(--blue); }
+
+  svg rect.cur { animation: ringPulse 1.2s ease-in-out infinite; }
+  svg .numpulse { animation: arrowPulse 1.1s ease-in-out infinite; }
+  @keyframes ringPulse { 0%,100%{stroke-opacity:1} 50%{stroke-opacity:.35} }
+  @keyframes arrowPulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Reverse Linked List — Recursion Visualizer</h1>
+  <div class="sub">Watch the recursive <b style="color:var(--blue)">reverse</b> flip a 4-node list. Green boxes/arrows = the state that <b style="color:var(--green)">matters</b>; the box that ends up as the <b style="color:var(--green)">new head</b> is always the same one (4).</div>
+
+  <div class="mainrow">
+    <div class="card stage-card">
+      <div class="stage" id="stage"></div>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--amberBg);border:2px solid var(--amber);"></span>head of the running reverse(v)</span>
+        <span><span class="sw" style="background:var(--greenBg);border:2px solid var(--green);"></span>the answer: new head = 4</span>
+        <span><span style="color:var(--orange);font-weight:700">→</span> pointer changed this step</span>
+        <span><span style="color:#5b6472;font-weight:700">→</span> existing pointer</span>
+        <span>∅ = null ("points to nobody")</span>
+      </div>
+      <div class="desc" id="desc"></div>
+      <div class="controls">
+        <button id="resetBtn">⏮ Reset</button>
+        <button id="prevBtn">◀ Prev</button>
+        <button id="playBtn">▶ Play</button>
+        <button id="nextBtn">Next ▶</button>
+        <span class="stepcount" id="stepcount"></span>
+      </div>
+      <div class="keys">← / → step &nbsp;·&nbsp; space play/pause</div>
+    </div>
+
+    <div class="sidecol">
+      <div class="card">
+        <div class="code-title">Call stack — each chip is a paused reverse() waiting for its friend</div>
+        <div id="stack"></div>
+        <div class="stackcap">left → right: deepest call first, then each frame that is waiting for it</div>
+      </div>
+      <div class="card">
+        <div class="code-title">The algorithm</div>
+        <pre><code>
+<span class="ln" id="ln0"><span class="kw">def</span> <span class="fn">reverse</span>(node):</span>
+<span class="ln" id="ln1">    <span class="kw">if</span> node <span class="kw">is</span> <span class="kw">None</span> <span class="kw">or</span> node.next <span class="kw">is</span> <span class="kw">None</span>:</span>
+<span class="ln" id="ln2">        <span class="kw">return</span> node              <span class="cm"># base case: the last box</span></span>
+<span class="ln" id="ln3">    new_head = <span class="fn">reverse</span>(node.next) <span class="cm"># friend flips the rest</span></span>
+<span class="ln" id="ln4">    node.next.next = node        <span class="cm"># turn the box behind me around</span></span>
+<span class="ln" id="ln5">    node.next = <span class="kw">None</span>           <span class="cm"># I point at nothing (for now)</span></span>
+<span class="ln" id="ln6">    <span class="kw">return</span> new_head            <span class="cm"># relay the new front upward</span></span>
+</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="recap">
+      <b>The one idea that makes the return make sense:</b><br>
+      <span class="mono">reverse(node)</span> promises to return the box that ends up at the <b>front</b> of its flipped stretch — never node itself.<br>
+      &nbsp;• reverse(4) → front of [4] = <b style="color:var(--green)">4</b><br>
+      &nbsp;• reverse(3) → front of [4 → 3] = <b style="color:var(--green)">4</b> &nbsp;(3 is at the <b>back</b>!)<br>
+      &nbsp;• reverse(2) → front of [4 → 3 → 2] = <b style="color:var(--green)">4</b><br>
+      &nbsp;• reverse(1) → front of [4 → 3 → 2 → 1] = <b style="color:var(--green)">4</b><br>
+      That's why <b>every frame returns the same value: 4</b>. The deepest call (reverse(4)) discovers it, and every frame above just
+      relays it with <span class="mono">return new_head</span>.
+    </p>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  // --- list geometry (SVG) ---
+  const N = 4;
+  const X0 = 64, GAP = 196, W = 92, H = 64;
+  const YT = 62, YC = YT + H / 2, YB = YT + H;      // top / center / bottom of a node
+  const NULL_CY = 195, NULL_R = 15, NULL_TOP = NULL_CY - NULL_R;
+
+  const C_OLD = '#5b6472', C_NEW = '#fb923c';
+  const C_FILL = '#1c1f2b', C_EDGE = '#3a4152';
+
+  const STEPS = [
+    { // 0
+      nxt: [2, 3, 4, -1], cur: null, ans: null, stack: [], newArrows: [], hot: [],
+      d: `Here is the line of boxes. Each box's <b>next</b> pointer is the arrow leaving its right side and ending at the box it points to — or at <b>∅</b> (null = "nobody"). Our goal: flip every arrow so the line reads <span class="good">4 → 3 → 2 → 1 → ∅</span>.`
+    },
+    { // 1
+      nxt: [2, 3, 4, -1], cur: 1, ans: null, stack: [{ v: 1 }], newArrows: [], hot: [3],
+      d: `We start <span class="code">reverse(node = 1)</span>. First, the <b>base-case check</b>: is 1 alone (does it point to ∅)? No — 1 points to 2. So 1 can't solve it alone. The trick of recursion: to flip a long chain, 1 asks the smaller chain behind it to flip first, so 1 <span class="good">calls reverse(2)</span> and waits.`
+    },
+    { // 2
+      nxt: [2, 3, 4, -1], cur: 2, ans: null, stack: [{ v: 1 }, { v: 2 }], newArrows: [], hot: [3],
+      d: `<span class="code">reverse(2)</span> runs the same check: 2 points to 3, not ∅ — not the last box. So 2 also <span class="good">calls reverse(3)</span> and waits. The call stack grows: reverse(1) → reverse(2) → reverse(3).`
+    },
+    { // 3
+      nxt: [2, 3, 4, -1], cur: 3, ans: null, stack: [{ v: 1 }, { v: 2 }, { v: 3 }], newArrows: [], hot: [3],
+      d: `<span class="code">reverse(3)</span> checks: 3 points to 4, not ∅ — not the last box. So 3 <span class="good">calls reverse(4)</span> and waits. Now the stack is four deep — nobody has done any real work yet; they're all just waiting for the answer to come back.`
+    },
+    { // 4
+      nxt: [2, 3, 4, -1], cur: 4, ans: null, stack: [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 4, ret: 4 }], newArrows: [], hot: [1, 2],
+      d: `<span class="code">reverse(4)</span> — the <b>base case</b>! 4 points to ∅, so 4 <b>is</b> the last box. Flipping just <b>[4]</b> gives <b>[4]</b>; the front of that chain is 4 itself. So reverse(4) <span class="good">returns 4</span>, and its frame pops off the stack. This first answer is the seed of everything.`
+    },
+    { // 5
+      nxt: [2, 3, 4, 3], cur: 3, ans: 4, stack: [{ v: 1 }, { v: 2 }, { v: 3, nh: 4 }], newArrows: [[4, 3]], hot: [4],
+      d: `Back in <span class="code">reverse(3)</span> — it stores the friend's answer: <b>new_head = 4</b> (green box, and see the stack). Now <b>magic line 1</b>: <span class="code">node.next.next = node</span>. node is 3, and 3.next is 4, so we set 4.next = 3. Watch the <span class="bad">orange arrow</span>: 4 turns around and points back at 3!`
+    },
+    { // 6
+      nxt: [2, 3, -1, 3], cur: 3, ans: 4, stack: [{ v: 1 }, { v: 2 }, { v: 3, nh: 4 }], newArrows: [[3, null]], hot: [5],
+      d: `Now <b>magic line 2</b>: <span class="code">node.next = None</span>. 3 drops its forward arrow to 4 and points at <b>∅</b> instead. Look at the flipped stretch so far — walking from 4 you get <span class="good">4 → 3 → ∅</span>. That tiny piece is already reversed!`
+    },
+    { // 7
+      nxt: [2, 3, -1, 3], cur: 3, ans: 4, stack: [{ v: 1 }, { v: 2 }, { v: 3, ret: 4 }], newArrows: [], hot: [6],
+      d: `<span class="code">reverse(3)</span> runs <span class="code">return new_head</span>. new_head is <b>4 — NOT 3!</b> Why? Because after the flip, 3 is at the <b>back</b> of this stretch and 4 is at the <b>front</b>. The function must hand the caller the front, so it relays <span class="good">4</span> up to reverse(2).`
+    },
+    { // 8
+      nxt: [2, 3, 2, 3], cur: 2, ans: 4, stack: [{ v: 1 }, { v: 2, nh: 4 }], newArrows: [[3, 2]], hot: [4],
+      d: `<span class="code">reverse(2)</span> takes over, and new_head is still 4. Magic line 1: node is 2, and 2.next is 3, so we set 3.next = 2 (<span class="bad">orange arrow</span>). 3 turns around to face 2.`
+    },
+    { // 9
+      nxt: [2, -1, 2, 3], cur: 2, ans: 4, stack: [{ v: 1 }, { v: 2, nh: 4 }], newArrows: [[2, null]], hot: [5],
+      d: `Magic line 2: 2.next = None. 2 points at ∅. Now walk from 4: <span class="good">4 → 3 → 2 → ∅</span>. The flipped stretch grew — each level turns one more box around and tacks itself onto the end.`
+    },
+    { // 10
+      nxt: [2, -1, 2, 3], cur: 2, ans: 4, stack: [{ v: 1 }, { v: 2, ret: 4 }], newArrows: [], hot: [6],
+      d: `<span class="code">reverse(2)</span> returns new_head = <b>4</b> — same story: 2 ends up at the <b>back</b>, so it can't return itself. It relays the front, <span class="good">4</span>, up to reverse(1).`
+    },
+    { // 11
+      nxt: [2, 1, 2, 3], cur: 1, ans: 4, stack: [{ v: 1, nh: 4 }], newArrows: [[2, 1]], hot: [4],
+      d: `<span class="code">reverse(1)</span> — the outermost call! node is 1, and 1.next is 2, so magic line 1 sets 2.next = 1 (<span class="bad">orange arrow</span>). 2 turns around to face 1.`
+    },
+    { // 12
+      nxt: [-1, 1, 2, 3], cur: 1, ans: 4, stack: [{ v: 1, nh: 4 }], newArrows: [[1, null]], hot: [5],
+      d: `Magic line 2: 1.next = None. 1 points at ∅. Look at the whole line now: <span class="good">4 → 3 → 2 → 1 → ∅</span>. The list is fully reversed!`
+    },
+    { // 13
+      nxt: [-1, 1, 2, 3], cur: 1, ans: 4, stack: [{ v: 1, ret: 4 }], newArrows: [], hot: [6],
+      d: `<span class="code">reverse(1)</span> runs <span class="code">return new_head = 4</span>. The very last box we found at the bottom of the recursion is the <b>new head</b> of the whole list. The whole chain of calls was really just a way to find 4, then turn every arrow around on the way back.`
+    },
+    { // 14
+      nxt: [-1, 1, 2, 3], cur: null, ans: 4, stack: [], newArrows: [], hot: [],
+      d: `<span class="good">Done!</span> The stack is empty and reverse() returned <b>4</b>. Every frame relayed the same answer — that's why each one does <span class="code">return new_head</span> instead of <span class="code">return node</span>: the new front of the line is found <b>once</b>, at the bottom, and passed all the way back up <b>unchanged</b>.`
+    }
+  ];
+
+  const state = { frames: STEPS, idx: 0, timer: null };
+
+  function xL(i) { return X0 + i * GAP; }
+  function xC(i) { return X0 + i * GAP + W / 2; }
+  function xR(i) { return X0 + i * GAP + W; }
+
+  function headPts(ex, ey, dx, dy) {
+    const a = Math.atan2(dy, dx), L = 14, s = 0.5;
+    const b1 = [ex - L * Math.cos(a - s), ey - L * Math.sin(a - s)];
+    const b2 = [ex - L * Math.cos(a + s), ey - L * Math.sin(a + s)];
+    return `${ex},${ey} ${b1[0]},${b1[1]} ${b2[0]},${b2[1]}`;
+  }
+
+  function arrowHTML(i, f) {
+    const t = f.nxt[i];                       // target value, or -1 for null
+    const isNew = f.newArrows.some(a => a[0] === i + 1 && a[1] === (t === -1 ? null : t));
+    const color = isNew ? C_NEW : C_OLD;
+    const cls = isNew ? ' class="numpulse"' : '';
+    let path, dx, dy, ex, ey;
+    if (t === -1) {
+      const sx = xC(i), sy = YB;
+      ex = sx; ey = NULL_TOP; dx = 0; dy = 1;
+      path = `M ${sx} ${sy} L ${ex} ${ey}`;
+    } else {
+      const j = t - 1;
+      const sx = xR(i), sy = YC;
+      const exX = j > i ? xL(j) : xR(j);
+      const midX = (sx + exX) / 2;
+      const ctrlY = j > i ? YC + 92 : YC - 72;   // bow below for forward, above for backward
+      ex = exX; ey = YC;
+      dx = ex - midX; dy = ey - ctrlY;
+      path = `M ${sx} ${sy} Q ${midX} ${ctrlY} ${ex} ${ey}`;
+    }
+    const s = `<path${cls} d="${path}" fill="none" stroke="${color}" stroke-width="${isNew ? 5 : 2.5}" stroke-linecap="round"/>` +
+              `<polygon points="${headPts(ex, ey, dx, dy)}" fill="${color}"/>`;
+    return s;
+  }
+
+  function stageSVG(f) {
+    let s = `<svg viewBox="0 0 ${xR(N - 1) + 24} 240" xmlns="http://www.w3.org/2000/svg">`;
+    for (let i = 0; i < N; i++) s += arrowHTML(i, f);          // arrows under boxes
+    for (let i = 0; i < N; i++) {                               // boxes
+      const v = i + 1, x = xL(i);
+      const ring = f.cur === v ? 'cur' : '';
+      s += `<rect x="${x}" y="${YT}" width="${W}" height="${H}" rx="12" fill="${C_FILL}"/>`;
+      s += `<rect x="${x}" y="${YT}" width="${W}" height="${H}" rx="12" fill="none" stroke="${C_EDGE}" stroke-width="2"/>`;
+      if (f.cur === v) s += `<rect class="${ring}" x="${x}" y="${YT}" width="${W}" height="${H}" rx="12" fill="none" stroke="#fbbf24" stroke-width="5"/>`;
+      if (f.ans === v) s += `<rect x="${x}" y="${YT}" width="${W}" height="${H}" rx="12" fill="none" stroke="#4ade80" stroke-width="5" stroke-dasharray="9 6"/>`;
+      s += `<text x="${xC(i)}" y="${YC}" fill="#eef1f6" font-size="30" font-weight="700" text-anchor="middle" dominant-baseline="central">${v}</text>`;
+      if (f.cur === v) s += `<text x="${xC(i)}" y="${YT - 14}" fill="#fbbf24" font-size="12" font-weight="700" text-anchor="middle">reverse(${v})</text>`;
+      if (f.ans === v) s += `<text x="${xC(i)}" y="${YT - 14}" fill="#4ade80" font-size="12" font-weight="700" text-anchor="middle">new head</text>`;
+      if (f.nxt[i] === -1) {                                    // null circle under this box
+        s += `<line x1="${xC(i)}" y1="${YB}" x2="${xC(i)}" y2="${NULL_TOP}" stroke="${C_OLD}" stroke-width="2" stroke-dasharray="4 3"/>`;
+        s += `<circle cx="${xC(i)}" cy="${NULL_CY}" r="${NULL_R}" fill="#22262f" stroke="#383e4b" stroke-width="2"/>`;
+        s += `<text x="${xC(i)}" y="${NULL_CY}" fill="#8b92a5" font-size="15" text-anchor="middle" dominant-baseline="central">∅</text>`;
+      }
+    }
+    return s + `</svg>`;
+  }
+
+  function render() {
+    const f = state.frames[state.idx];
+    const count = state.frames.length;
+
+    $('stepcount').textContent = `${state.idx + 1} / ${count}`;
+    $('prevBtn').disabled = state.idx === 0;
+    $('nextBtn').disabled = state.idx === count - 1;
+    $('playBtn').textContent = state.timer ? '⏸ Pause' : '▶ Play';
+
+    $('stage').innerHTML = stageSVG(f);
+    $('desc').innerHTML = f.d;
+
+    // call stack (top = deepest, so walk the array backwards)
+    let sh = '';
+    for (let i = f.stack.length - 1; i >= 0; i--) {
+      const fr = f.stack[i];
+      const top = i === f.stack.length - 1;
+      const sub = fr.nh ? `<div class="chipsub nh">← new_head = ${fr.nh}</div>`
+               : fr.ret ? `<div class="chipsub ret">returns ${fr.ret} ▲</div>` : '';
+      sh += `<div class="chip${top ? ' active' : ''}"><span class="fname">reverse(${fr.v})</span>${sub}</div>`;
+    }
+    $('stack').innerHTML = sh;
+
+    document.querySelectorAll('pre .ln').forEach(l => l.classList.remove('hot'));
+    f.hot.forEach(i => { const el = $('ln' + i); el && el.classList.add('hot'); });
+  }
+
+  function go(i) {
+    state.idx = Math.max(0, Math.min(state.frames.length - 1, i));
+    render();
+  }
+
+  $('prevBtn').onclick = () => go(state.idx - 1);
+  $('nextBtn').onclick = () => go(state.idx + 1);
+  $('resetBtn').onclick = () => { clearInterval(state.timer); state.timer = null; go(0); };
+  $('playBtn').onclick = () => {
+    if (state.timer) { clearInterval(state.timer); state.timer = null; render(); return; }
+    if (state.idx >= state.frames.length - 1) go(0);
+    state.timer = setInterval(() => {
+      if (state.idx >= state.frames.length - 1) {
+        clearInterval(state.timer); state.timer = null; render(); return;
+      }
+      go(state.idx + 1);
+    }, 1600);
+  };
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'ArrowLeft') { go(state.idx - 1); e.preventDefault(); }
+    else if (e.code === 'ArrowRight') { go(state.idx + 1); e.preventDefault(); }
+    else if (e.code === 'Space') { $('playBtn').onclick(); e.preventDefault(); }
+  });
+
+  render();
+</script>
+</body>
+</html>
