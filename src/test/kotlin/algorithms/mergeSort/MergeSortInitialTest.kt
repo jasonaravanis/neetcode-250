@@ -3,8 +3,8 @@ package algorithms.mergeSort
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
-class MergeSortTest {
-    private val mergeSort = MergeSort()
+class MergeSortInitialTest {
+    private val mergeSort = MergeSortInitial()
 
     @Test
     fun `empty array`() {
