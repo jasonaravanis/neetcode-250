@@ -68,9 +68,11 @@ n: number of elements across all lists
     so total time complexity is O(n * log(k))
 
 space complexity:
-    each time we generate a new batch of merged lists we need to store it in a temporary variable of length N
+    each time we generate a new batch of merged lists we need to store it in a temporary variable.
+    Each element is the had of a linked list
+    The number starts at k/2 and divides by two each time
 
-    so space is O(n)
+    so space is O(log(k))
 
 
 * */
