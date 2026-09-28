@@ -22,5 +22,7 @@ class Solution {
                 }
             }
         }
+
+        val r = Int.MAX_VALUE
     }
 }
