@@ -2,46 +2,95 @@ package dataStructures.binaryTree.deleteNodeInBST2
 
 import dataStructures.binaryTree.TreeNode
 
-// time: O(h) where h is the height of the binary search tree
-// space: O(1)
+// time: O(h) where h is height of BST, log(n) balanced, n worst case
+// space: O(h) for recursive stack
 
 fun deleteNodeInBST2(
     root: TreeNode?,
     key: Int,
 ): TreeNode? {
-    var parent: TreeNode? = null
-    var target = root
+    if (root == null) return null
 
-    while (target != null && target.`val` != key) {
+    when {
+        key < root.`val` -> {
+            root.left = deleteNodeInBST2(root.left, key)
+        }
+
+        key > root.`val` -> {
+            root.right = deleteNodeInBST2(root.right, key)
+        }
+
+        else -> {
+            val left = root.left
+            val right = root.right
+
+            when {
+                left == null -> {
+                    return right
+                }
+
+                right == null -> {
+                    return left
+                }
+
+                else -> {
+                    var successor: TreeNode = right
+                    while (true) {
+                        val next = successor.left ?: break
+                        successor = next
+                    }
+                    root.`val` = successor.`val`
+                    root.right = deleteNodeInBST2(root.right, successor.`val`)
+                }
+            }
+        }
+    }
+
+    return root
+}
+
+// time: O(h) where h is height of BST, log(n) balanced, n worst case
+// space: O(1)
+
+fun deleteNodeInBSTIterative(
+    root: TreeNode?,
+    key: Int,
+): TreeNode? {
+    var parent: TreeNode? = null
+    var current = root
+
+    while (current != null && current.`val` != key) {
         when {
-            key < target.`val` -> {
-                parent = target
-                target = target.left
+            key < current.`val` -> {
+                parent = current
+                current = current.left
             }
 
             else -> {
-                parent = target
-                target = target.right
+                parent = current
+                current = current.right
             }
         }
     }
 
-    if (target == null) return root
+    if (current == null) return root
 
-    val left = target.left
-    val right = target.right
+    val left = current.left
+    val right = current.right
 
     if (left == null || right == null) {
         val child = left ?: right
+
         when {
             parent == null -> return child
-            target === parent.left -> parent.left = child
-            target === parent.right -> parent.right = child
+            parent.left === current -> parent.left = child
+            parent.right === current -> parent.right = child
         }
+
         return root
     }
 
-    var successorParent: TreeNode = target
+    var successorParent: TreeNode = current
     var successor: TreeNode = right
 
     while (true) {
@@ -50,11 +99,12 @@ fun deleteNodeInBST2(
         successor = next
     }
 
-    target.`val` = successor.`val`
+    current.`val` = successor.`val`
 
-    when {
-        successorParent.left === successor -> successorParent.left = successor.right
-        else -> successorParent.right = successor.right
+    if (successorParent.left === successor) {
+        successorParent.left = successor.right
+    } else {
+        successorParent.right = successor.right
     }
 
     return root
