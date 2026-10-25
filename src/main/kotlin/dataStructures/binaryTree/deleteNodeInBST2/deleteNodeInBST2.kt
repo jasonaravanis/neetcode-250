@@ -2,62 +2,56 @@ package dataStructures.binaryTree.deleteNodeInBST2
 
 import dataStructures.binaryTree.TreeNode
 
-// time: O(h) where h is height of BST, log(n) balanced, n worst case
-// space: O(h) for recursive stack
+// time: O(h), h is height of BST, either log(n) average or n worst case
+// space: O(h), h is height of BST, either log(n) average or n worst case
 
-fun deleteNodeInBST2(
+fun deleteNodeInBST2Recursive(
     root: TreeNode?,
     key: Int,
 ): TreeNode? {
-    if (root == null) return null
+    if (root == null) {
+        return null
+    }
 
     when {
         key < root.`val` -> {
-            root.left = deleteNodeInBST2(root.left, key)
+            root.left = deleteNodeInBST2Recursive(root.left, key)
         }
 
         key > root.`val` -> {
-            root.right = deleteNodeInBST2(root.right, key)
+            root.right = deleteNodeInBST2Recursive(root.right, key)
         }
 
         else -> {
             val left = root.left
             val right = root.right
-
-            when {
-                left == null -> {
-                    return right
-                }
-
-                right == null -> {
-                    return left
-                }
-
-                else -> {
-                    var successor: TreeNode = right
-                    while (true) {
-                        val next = successor.left ?: break
-                        successor = next
-                    }
-                    root.`val` = successor.`val`
-                    root.right = deleteNodeInBST2(root.right, successor.`val`)
-                }
+            if (left == null || right == null) {
+                val child = left ?: right
+                return child
             }
+
+            var successor: TreeNode = right
+            while (true) {
+                successor = successor.left ?: break
+            }
+
+            root.`val` = successor.`val`
+            root.right = deleteNodeInBST2Recursive(root.right, successor.`val`)
         }
     }
 
     return root
 }
 
-// time: O(h) where h is height of BST, log(n) balanced, n worst case
+// time: O(h), h is the height of BST, either log(n) average or n worst case
 // space: O(1)
 
-fun deleteNodeInBSTIterative(
+fun deleteNodeInBST2Iterative(
     root: TreeNode?,
     key: Int,
 ): TreeNode? {
     var parent: TreeNode? = null
-    var current = root
+    var current: TreeNode? = root
 
     while (current != null && current.`val` != key) {
         when {
@@ -66,13 +60,12 @@ fun deleteNodeInBSTIterative(
                 current = current.left
             }
 
-            else -> {
+            key > current.`val` -> {
                 parent = current
                 current = current.right
             }
         }
     }
-
     if (current == null) return root
 
     val left = current.left
@@ -80,18 +73,24 @@ fun deleteNodeInBSTIterative(
 
     if (left == null || right == null) {
         val child = left ?: right
-
         when {
-            parent == null -> return child
-            parent.left === current -> parent.left = child
-            parent.right === current -> parent.right = child
-        }
+            parent == null -> {
+                return child
+            }
 
+            current === parent.left -> {
+                parent.left = child
+            }
+
+            current === parent.right -> {
+                parent.right = child
+            }
+        }
         return root
     }
 
-    var successorParent: TreeNode = current
     var successor: TreeNode = right
+    var successorParent: TreeNode = current
 
     while (true) {
         val next = successor.left ?: break

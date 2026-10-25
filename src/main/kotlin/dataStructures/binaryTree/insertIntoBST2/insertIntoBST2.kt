@@ -1,26 +1,34 @@
 package dataStructures.binaryTree.insertIntoBST2
 
 import dataStructures.binaryTree.TreeNode
+import dataStructures.binaryTree.insertIntoBST.insertIntoBSTRecursive
 
-// time: O(h) where h is height of binary search tree, log(n) average n worst case
-// space: O(h) where h is height of binary search tree, log(n) average n worst case
+// time: O(h) where h is the height of the BST, O(log(n)) average or O(n) worst
+// space: O(h) where h is the height of the BST, O(log(n)) average or O(n) worst
 
-fun insertIntoBST2(
+fun insertIntoBST2Recursive(
     root: TreeNode?,
     key: Int,
 ): TreeNode {
     if (root == null) return TreeNode(key)
 
     when {
-        key < root.`val` -> root.left = insertIntoBST2(root.left, key)
-        key > root.`val` -> root.right = insertIntoBST2(root.right, key)
-        else -> return root
-    }
+        key < root.`val` -> {
+            root.left = insertIntoBST2Recursive(root.left, key)
+        }
 
+        key > root.`val` -> {
+            root.right = insertIntoBST2Recursive(root.right, key)
+        }
+
+        else -> {
+            return root
+        }
+    }
     return root
 }
 
-// time: O(h)
+// time: O(h) where h is the height of the BST, log(n) average n worst
 // space: O(1)
 
 fun insertIntoBST2Iterative(
@@ -29,7 +37,9 @@ fun insertIntoBST2Iterative(
 ): TreeNode {
     val node = TreeNode(key)
 
-    var current = root ?: return node
+    if (root == null) return node
+
+    var current: TreeNode = root
 
     while (true) {
         when {

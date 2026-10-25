@@ -1,0 +1,73 @@
+package algorithms.insertionSort
+
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+
+class InsertionSortPracticeTest {
+    private val insertionSort = InsertionSortPractice()
+
+    private fun sort(arr: IntArray): IntArray {
+        insertionSort.sort(arr)
+        return arr
+    }
+
+    @Test
+    fun `empty array`() {
+        assertContentEquals(intArrayOf(), sort(intArrayOf()))
+    }
+
+    @Test
+    fun `single element`() {
+        assertContentEquals(intArrayOf(5), sort(intArrayOf(5)))
+    }
+
+    @Test
+    fun `two elements sorted`() {
+        assertContentEquals(intArrayOf(1, 2), sort(intArrayOf(1, 2)))
+    }
+
+    @Test
+    fun `two elements reversed`() {
+        assertContentEquals(intArrayOf(1, 2), sort(intArrayOf(2, 1)))
+    }
+
+    @Test
+    fun `example`() {
+        assertContentEquals(
+            intArrayOf(1, 2, 3, 4, 5, 7, 8, 9),
+            sort(intArrayOf(5, 2, 8, 1, 9, 3, 7, 4)),
+        )
+    }
+
+    @Test
+    fun `duplicates`() {
+        assertContentEquals(
+            intArrayOf(1, 1, 2, 2, 3, 3),
+            sort(intArrayOf(3, 1, 2, 3, 2, 1)),
+        )
+    }
+
+    @Test
+    fun `already sorted`() {
+        assertContentEquals(
+            intArrayOf(1, 2, 3, 4, 5),
+            sort(intArrayOf(1, 2, 3, 4, 5)),
+        )
+    }
+
+    @Test
+    fun `reverse sorted`() {
+        assertContentEquals(
+            intArrayOf(1, 2, 3, 4, 5),
+            sort(intArrayOf(5, 4, 3, 2, 1)),
+        )
+    }
+
+    @Test
+    fun `negative numbers`() {
+        assertContentEquals(
+            intArrayOf(-5, -3, -1, 0, 4),
+            sort(intArrayOf(4, -1, 0, -5, -3)),
+        )
+    }
+}
